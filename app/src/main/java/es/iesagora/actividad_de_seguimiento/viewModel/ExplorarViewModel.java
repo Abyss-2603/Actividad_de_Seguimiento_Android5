@@ -8,48 +8,60 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import es.iesagora.actividad_de_seguimiento.data.PendientesEntidad;
+import es.iesagora.actividad_de_seguimiento.repository.AuthRepository;
 import es.iesagora.actividad_de_seguimiento.repository.PendientesRepository;
-import es.iesagora.actividad_de_seguimiento.repository.PreferencesRepository;
 
 public class ExplorarViewModel extends AndroidViewModel {
-    private final PreferencesRepository repository;
-    private PendientesRepository pendientesRepo;
+    private final AuthRepository authRepo;
+    private final PendientesRepository pendientesRepo;
 
     private MutableLiveData<Integer> accionDialogo = new MutableLiveData<>();
-
     private MutableLiveData<PendientesEntidad> pendienteEncontrado = new MutableLiveData<>();
+    private MutableLiveData<String> nombreUsuario = new MutableLiveData<>();
+
     public ExplorarViewModel(@NonNull Application application) {
         super(application);
-        repository = new PreferencesRepository(application);
-        pendientesRepo = new PendientesRepository(application);
+        authRepo = new AuthRepository();
+        pendientesRepo = new PendientesRepository();
     }
 
     public void comprobarBienvenida() {
         accionDialogo.setValue(0);
 
-        String nombre = repository.getNombreUsuario();
+        authRepo.getNombreUsuario(new AuthRepository.NameCallback() {
+            @Override
+            public void onSuccess(String nombre) {
+                nombreUsuario.postValue(nombre);
 
-        if (nombre == null || nombre.isEmpty()) {
-            accionDialogo.postValue(1);
-        } else {
-            new Thread(() -> {
-                PendientesEntidad p = pendientesRepo.obtenerPendientesAleatorio();
-
-                if (p != null) {
-                    pendienteEncontrado.postValue(p);
-                    accionDialogo.postValue(2);
+                if (nombre != null && !nombre.isEmpty()) {
+                    buscarPendienteAleatorio();
                 } else {
-                    accionDialogo.postValue(0);
+                    accionDialogo.postValue(1);
                 }
-            }).start();
-        }
+            }
+
+            @Override
+            public void onError(String message) {
+                accionDialogo.postValue(1);
+            }
+        });
     }
 
-    public String getNombreUsuario() {
-        return repository.getNombreUsuario();
+    private void buscarPendienteAleatorio() {
+        pendientesRepo.obtenerPendientesAleatorio().observeForever(p -> {
+            if (p != null) {
+                pendienteEncontrado.postValue(p);
+                accionDialogo.postValue(2);
+            } else {
+                accionDialogo.postValue(0);
+            }
+        });
     }
 
-    // Getters para los LiveData
+    public LiveData<String> getNombreUsuario() {
+        return nombreUsuario;
+    }
+
     public LiveData<Integer> getAccionDialogo() { return accionDialogo; }
     public LiveData<PendientesEntidad> getPendienteEncontrado() { return pendienteEncontrado; }
 }

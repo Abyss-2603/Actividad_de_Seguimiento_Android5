@@ -16,11 +16,11 @@ public class PendientesViewModel extends AndroidViewModel {
 
     public PendientesViewModel(@NonNull Application application) {
         super(application);
-        repository = new PendientesRepository(application);
+        repository = new PendientesRepository();
     }
 
     public LiveData<List<PendientesEntidad>> obtenerPendientes() {
-        return repository.obtenertodo();
+        return repository.obtenerTodo();
     }
 
     public void insertar(PendientesEntidad entidad) {
@@ -28,10 +28,10 @@ public class PendientesViewModel extends AndroidViewModel {
     }
 
     public void eliminar(PendientesEntidad entidad) {
-        repository.eliminar(entidad);
+        repository.eliminarPorIdApi(entidad.getIdAPI());
     }
 
-    public void eliminarPorIdApi(int idApi, String tipo) {
-        repository.eliminarPorIdApi(idApi, tipo);
+    public void eliminarPorIdApi(int idApi) {
+        repository.eliminarPorIdApi(idApi);
     }
 }

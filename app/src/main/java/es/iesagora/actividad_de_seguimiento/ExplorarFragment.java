@@ -105,21 +105,23 @@ public class ExplorarFragment extends Fragment {
     private void mostrarDialogoConPendiente(PendientesEntidad p) {
         if (p == null) return;
 
-        String nombre = viewModel.getNombreUsuario();
-        String mensaje = "Hola, " + nombre + ". ¿Has visto ya tu pendiente " + p.getTitulo() + "?";
+        viewModel.getNombreUsuario().observe(getViewLifecycleOwner(), nombre -> {
+            String nombreFinal = (nombre != null && !nombre.isEmpty()) ? nombre : "Usuario";
+            String mensaje = "Hola, " + nombreFinal + ". ¿Has visto ya tu pendiente " + p.getTitulo() + "?";
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Bienvenido")
-                .setMessage(mensaje)
-                .setPositiveButton("Ir a Seguimiento", (dialog, which) -> {
-                    Bundle args = new Bundle();
-                    args.putString("tituloPreCargado", p.getTitulo());
-                    args.putString("tipoPreCargado", p.getTipo());
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Bienvenido")
+                    .setMessage(mensaje)
+                    .setPositiveButton("Ir a Seguimiento", (dialog, which) -> {
+                        Bundle args = new Bundle();
+                        args.putString("tituloPreCargado", p.getTitulo());
+                        args.putString("tipoPreCargado", p.getTipo());
 
-                    Navigation.findNavController(requireView())
-                            .navigate(R.id.action_explorarFragment_to_anadirSeguimientoFragment, args);
-                })
-                .setNegativeButton("Aún no", null)
-                .show();
+                        Navigation.findNavController(requireView())
+                                .navigate(R.id.action_explorarFragment_to_anadirSeguimientoFragment, args);
+                    })
+                    .setNegativeButton("Aún no", null)
+                    .show();
+        });
     }
 }

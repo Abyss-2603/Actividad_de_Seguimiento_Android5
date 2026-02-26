@@ -68,7 +68,7 @@ public class SeriesFragment extends Fragment {
                         );
                         pendientesViewModel.insertar(entidad);
                     } else {
-                        pendientesViewModel.eliminarPorIdApi(serie.getId(), "SERIE");
+                        pendientesViewModel.eliminarPorIdApi(serie.getId());
                     }
                 }
         );

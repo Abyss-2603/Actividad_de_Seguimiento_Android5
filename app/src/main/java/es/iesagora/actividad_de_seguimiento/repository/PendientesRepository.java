@@ -1,61 +1,66 @@
 package es.iesagora.actividad_de_seguimiento.repository;
 
-import android.app.Application;
-
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
-import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.Random;
 
-import es.iesagora.actividad_de_seguimiento.data.PendienteDao;
-import es.iesagora.actividad_de_seguimiento.data.PendientesDatabase;
 import es.iesagora.actividad_de_seguimiento.data.PendientesEntidad;
 
 public class PendientesRepository {
-    private PendienteDao pendienteDao;
-    private Executor executor;
-    private String currentUserId;
-    public PendientesRepository(Application application){
-        pendienteDao = PendientesDatabase.getInstance(application).pendienteDao();
-        executor = Executors.newSingleThreadExecutor();
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final String uid;
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            currentUserId = user.getUid();
-        } else {
-            currentUserId = "";
+    public PendientesRepository() {
+        this.uid = FirebaseAuth.getInstance().getUid();
+    }
+
+    public void insertar(PendientesEntidad p) {
+        if (uid == null) return;
+        db.collection("users").document(uid)
+                .collection("pendientes").document(String.valueOf(p.getIdAPI()))
+                .set(p);
+    }
+
+    public void eliminarPorIdApi(int idApi) {
+        if (uid == null) return;
+        db.collection("users").document(uid)
+                .collection("pendientes").document(String.valueOf(idApi))
+                .delete();
+    }
+
+    public MutableLiveData<List<PendientesEntidad>> obtenerTodo() {
+        MutableLiveData<List<PendientesEntidad>> liveData = new MutableLiveData<>();
+        if (uid != null) {
+            db.collection("users").document(uid).collection("pendientes")
+                    .addSnapshotListener((value, error) -> {
+                        if (value != null) liveData.postValue(value.toObjects(PendientesEntidad.class));
+                    });
         }
-    }
-    public void insertar(PendientesEntidad pendientesEntidad){
-        pendientesEntidad.setUserId(currentUserId);
-
-        executor.execute(() -> {
-            pendienteDao.insertar(pendientesEntidad);
-        });
+        return liveData;
     }
 
-    public void eliminar(PendientesEntidad pendientesEntidad) {
-        executor.execute(() -> {
-            pendienteDao.eliminar(pendientesEntidad);
-        });
-    }
-
-    public void eliminarPorIdApi(int idApi, String tipo) {
-        executor.execute(() -> {
-            pendienteDao.eliminarPorIdApi(idApi, tipo, currentUserId);
-        });
-    }
-
-    public PendientesEntidad obtenerPendientesAleatorio() {
-        return pendienteDao.obtenerAleatorio(currentUserId);
-    }
-
-    public LiveData<List<PendientesEntidad>> obtenertodo(){
-        return pendienteDao.obtenerTodos(currentUserId);
+    public LiveData<PendientesEntidad> obtenerPendientesAleatorio() {
+        MutableLiveData<PendientesEntidad> liveDataAleatorio = new MutableLiveData<>();
+        if (uid != null) {
+            db.collection("users").document(uid).collection("pendientes")
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            List<PendientesEntidad> lista = queryDocumentSnapshots.toObjects(PendientesEntidad.class);
+                            int randomIndex = new Random().nextInt(lista.size());
+                            liveDataAleatorio.postValue(lista.get(randomIndex));
+                        } else {
+                            liveDataAleatorio.postValue(null);
+                        }
+                    });
+        } else {
+            liveDataAleatorio.postValue(null);
+        }
+        return liveDataAleatorio;
     }
 }

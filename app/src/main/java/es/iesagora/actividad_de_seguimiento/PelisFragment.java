@@ -111,15 +111,13 @@ public class PelisFragment extends Fragment {
                         });
 
                     } else {
-                        pendientesViewModel.eliminarPorIdApi(peli.getId(), "PELICULA");
+                        pendientesViewModel.eliminarPorIdApi(peli.getId());
                     }
                 }
         );
 
         binding.rvPelis.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.rvPelis.setAdapter(adapter);
-
-        viewModel = new ViewModelProvider(this).get(PelisViewModel.class);
 
         viewModel.getPelisResult().observe(getViewLifecycleOwner(), resource -> {
             if (resource == null) return;
@@ -141,11 +139,13 @@ public class PelisFragment extends Fragment {
                     break;
             }
         });
+
         pendientesViewModel.obtenerPendientes().observe(getViewLifecycleOwner(), lista -> {
             listaDb = lista;
             combinarListas();
         });
     }
+
     private void combinarListas() {
         if (listaApi == null || listaApi.isEmpty()) return;
 
@@ -164,5 +164,4 @@ public class PelisFragment extends Fragment {
 
         adapter.setList(listaApi);
     }
-
 }

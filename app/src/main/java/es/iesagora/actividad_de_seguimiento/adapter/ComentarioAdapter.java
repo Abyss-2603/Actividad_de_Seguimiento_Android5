@@ -46,10 +46,14 @@ public class ComentarioAdapter extends RecyclerView.Adapter<ComentarioAdapter.Vi
         }
 
         if (c.getCreatedAt() != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-            holder.tvFecha.setText("Hace un momento");
-        }
-    }
+            if (c.getCreatedAt() instanceof com.google.firebase.Timestamp) {
+                Date fecha = ((com.google.firebase.Timestamp) c.getCreatedAt()).toDate();
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                holder.tvFecha.setText(sdf.format(fecha));
+            } else {
+                holder.tvFecha.setText("Hace un momento");
+            }
+        }    }
 
     @Override
     public int getItemCount() { return mComentarios.size(); }
