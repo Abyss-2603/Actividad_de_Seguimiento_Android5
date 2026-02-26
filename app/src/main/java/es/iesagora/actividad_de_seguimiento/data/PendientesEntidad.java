@@ -4,7 +4,10 @@ import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.google.firebase.firestore.ServerTimestamp;
+
 import java.io.Serializable;
+import java.util.Date;
 
 @Entity(tableName = "tabla_pendientes")
 public class PendientesEntidad implements Serializable {
@@ -27,6 +30,9 @@ public class PendientesEntidad implements Serializable {
 
     }
 
+    @ServerTimestamp
+    private Date createdAt;
+
     public PendientesEntidad(int idAPI, String titulo, String descripcion, String posterPath, String backdropPath, String tipo, String info, String generos) {
         this.idAPI = idAPI;
         this.titulo = titulo;
@@ -36,6 +42,14 @@ public class PendientesEntidad implements Serializable {
         this.tipo = tipo;
         this.info = info;
         this.generos = generos;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
     public int getId() {
